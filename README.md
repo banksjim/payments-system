@@ -1,6 +1,6 @@
 # payments-system
 
-A payments backend in Go, built from an empty folder to six microservices running on Kubernetes. I'm building it while following the CodeWise course [Go Microservices Full Course: Build a Payments System From Scratch](https://www.youtube.com/watch?v=AVy0hy4qSnQ). The course has 24 episodes and runs about 20 hours.
+A payments backend in Go. The course builds six microservices from an empty folder and runs them on Kubernetes. I'm building it while following the CodeWise course [Go Microservices Full Course: Build a Payments System From Scratch](https://www.youtube.com/watch?v=AVy0hy4qSnQ). The course has 24 episodes and runs about 20 hours.
 
 This is a personal learning repo. It follows the video as I work through it and has no affiliation with the course author. The author's own code is at [dev-marker/payments](https://github.com/dev-marker/payments).
 
@@ -14,7 +14,7 @@ The code in this repo matches the video up to that point and nothing beyond it. 
 
 ## What the course builds
 
-- A double-entry ledger in PostgreSQL, with type-safe SQL using sqlc and pgx. Money moves safely using locks and idempotency keys.
+- A double-entry ledger in PostgreSQL, with type-safe SQL using sqlc and pgx. Locks and idempotency keys control how money moves.
 - JWT auth, gRPC between services, an API gateway, and events with NATS JetStream and the transactional outbox.
 - Transfers as sagas, notifications with a dead-letter queue, and observability with OpenTelemetry, Prometheus, and Grafana.
 - Testing with testcontainers and k6, distroless images, CI, signed webhooks, multi-currency FX, fraud checks, and reconciliation.
