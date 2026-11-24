@@ -10,7 +10,7 @@ This is a personal learning repo. It follows the video as I work through it and 
 
 That is the start of "Append-only & derived balances" in Episode 2, "Designing a Double-Entry Ledger." Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
 
-The committed code covers Episode 1 only. Episode 2 work is not committed yet. I update this line as I move forward, so check it before assuming a feature should exist.
+The committed code covers Episode 1 and the start of Episode 2. The ledger migration is a work in progress. I update this line as I move forward, so check it before assuming a feature should exist.
 
 ## What the course builds
 
@@ -51,12 +51,14 @@ The committed code covers Episode 1 only. Episode 2 work is not committed yet. I
 
 ## What is in the repo now
 
-Episode 1 covers the finished system, why Go and microservices, local infrastructure, and graceful shutdown. The repo contains the last two:
+Episode 1 covers the finished system, why Go and microservices, local infrastructure, and graceful shutdown. The repo contains the last two, plus the first ledger migration from Episode 2:
 
 | Path | What it is |
 | ---- | ---------- |
 | `cmd/wallet` | The wallet service. It serves `GET /healthz` on port 8081 and shuts down gracefully on SIGINT or SIGTERM. |
 | `docker-compose.yml` | Local infrastructure: Postgres 17, Redis 8, and NATS 2.11 with JetStream enabled. |
+| `deploy/postgres/01-create-databases.sql` | Creates the `wallet`, `auth`, and `transfers` databases the first time Postgres starts. Compose mounts the folder into the container's init directory. |
+| `db/wallet/migrations` | Wallet database migrations. `000001_init_ledger` creates the `accounts`, `transactions`, and `entries` tables, with triggers that require every transaction to have entries. It is a work in progress and not ready to apply with `migrate`. |
 | `docs/commands.md` | Commands I use while working on the project. |
 
 Services started by `docker compose`:
@@ -66,6 +68,8 @@ Services started by `docker compose`:
 | postgres | `postgres:17-alpine` | 5432 |
 | redis | `redis:8-alpine` | 6379 |
 | nats | `nats:2.11-alpine` | 4222 (client), 8222 (monitoring) |
+
+Postgres has four databases besides the built-in `postgres` one. `payments` is the default, created from `POSTGRES_DB`. `wallet`, `auth`, and `transfers` get one database per service.
 
 ## Run it locally
 
@@ -94,7 +98,15 @@ docker compose exec redis redis-cli ping
 curl -s localhost:8222/healthz
 ```
 
+List the Postgres databases. Expect `auth`, `payments`, `postgres`, `transfers`, and `wallet`:
+
+```bash
+docker compose exec -T postgres psql -U payments -c 'SELECT datname FROM pg_database WHERE NOT datistemplate ORDER BY 1;'
+```
+
 Stop everything with `docker compose down`. Named volumes, including the Postgres data, survive that command. Add `-v` to delete them.
+
+The init script in `deploy/postgres` runs only when the Postgres volume is first created. If you add a database to that file, run `docker compose down -v` and then `docker compose up -d` to recreate the volume, which deletes the data. To keep the data, create the database in `psql` with `CREATE DATABASE`.
 
 The credentials in `docker-compose.yml` are for local development only.
 
@@ -103,9 +115,15 @@ The credentials in `docker-compose.yml` are for local development only.
 ```text
 .
 ├── cmd/
-│   └── wallet/        wallet service entry point
+│   └── wallet/            wallet service entry point
+├── db/
+│   └── wallet/
+│       └── migrations/    wallet database migrations
+├── deploy/
+│   └── postgres/          init scripts, run on first Postgres start
 ├── docs/
-│   └── commands.md    command reference
-├── docker-compose.yml local Postgres, Redis, NATS
-└── go.mod
+│   └── commands.md        command reference
+├── docker-compose.yml     local Postgres, Redis, NATS
+├── go.mod
+└── README.md
 ```
