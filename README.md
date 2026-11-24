@@ -6,11 +6,11 @@ This is a personal learning repo. It follows the video as I work through it and 
 
 ## Course progress
 
-**Current position: 36:28 of 19:47:09 (about 3%).**
+**Current position: 1:01:27 of 19:47:09 (about 5%).**
 
-That is the end of Episode 1, in the "Graceful shutdown" section (27:32 to 36:29). Episode 2, "Designing a Double-Entry Ledger," starts at 36:29.
+That is the start of "Append-only & derived balances" in Episode 2, "Designing a Double-Entry Ledger." Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
 
-The code in this repo matches the video up to that point and nothing beyond it. I update this line as I move forward, so check it before assuming a feature should exist.
+The committed code covers Episode 1 only. Episode 2 work is not committed yet. I update this line as I move forward, so check it before assuming a feature should exist.
 
 ## What the course builds
 
