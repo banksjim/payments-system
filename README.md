@@ -73,7 +73,21 @@ Postgres has four databases besides the built-in `postgres` one. `payments` is t
 
 ## Run it locally
 
-You need Go (see `go.mod` for the version) and Docker with the compose plugin.
+### Prerequisites
+
+| Tool | Version | Used for |
+| ---- | ------- | -------- |
+| Go | 1.27.4 (see `go.mod`) | Building and running the services |
+| Docker with the Compose plugin | Docker 29.x, Compose v5.x | Running Postgres, Redis, and NATS |
+| golang-migrate CLI (`migrate`) | v4.20.1, built with `-tags postgres` | Applying and rolling back the database migrations in `db/` |
+
+Install `migrate` with Go:
+
+```bash
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1
+```
+
+This puts the binary in `~/go/bin`. Make sure that directory is on your `PATH`, then check it with `migrate -version`.
 
 ```bash
 # Start Postgres, Redis, and NATS in the background
@@ -109,6 +123,32 @@ Stop everything with `docker compose down`. Named volumes, including the Postgre
 The init script in `deploy/postgres` runs only when the Postgres volume is first created. If you add a database to that file, run `docker compose down -v` and then `docker compose up -d` to recreate the volume, which deletes the data. To keep the data, create the database in `psql` with `CREATE DATABASE`.
 
 The credentials in `docker-compose.yml` are for local development only.
+
+### Database migrations
+
+Each database change is a pair of files in `db/<service>/migrations`: an `.up.sql` file that applies the change and a `.down.sql` file that reverses it. `migrate` tracks the applied version in a `schema_migrations` table in each database.
+
+Create a new pair. `-seq` numbers the files in order:
+
+```bash
+migrate create -ext sql -dir db/wallet/migrations -seq <name>
+```
+
+Apply all pending migrations to the `wallet` database, using the local compose credentials:
+
+```bash
+migrate -path db/wallet/migrations \
+  -database "postgres://payments:payments@localhost:5432/wallet?sslmode=disable" up
+```
+
+Roll back the most recent migration with `down 1`, or check the current version with `version`:
+
+```bash
+migrate -path db/wallet/migrations -database "<same URL>" down 1
+migrate -path db/wallet/migrations -database "<same URL>" version
+```
+
+`000001_init_ledger` is still a work in progress, and its down file is empty, so it cannot be rolled back yet. Do not run `up` against a database you care about until the migration is finished.
 
 ## Layout
 
