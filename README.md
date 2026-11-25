@@ -6,9 +6,9 @@ This is a personal learning repo. It follows the video as I work through it and 
 
 ## Course progress
 
-**Current position: 1:01:27 of 19:47:09 (about 5%).**
+**Current position: 1:05:29 of 19:47:09 (about 6%).**
 
-That is the start of "Append-only & derived balances" in Episode 2, "Designing a Double-Entry Ledger." Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
+That is inside "Append-only & derived balances" in Episode 2, "Designing a Double-Entry Ledger." That section runs from 1:01:27 to 1:08:34. Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
 
 The committed code covers Episode 1 and the start of Episode 2. The ledger migration is a work in progress. I update this line as I move forward, so check it before assuming a feature should exist.
 
@@ -73,7 +73,21 @@ Postgres has four databases besides the built-in `postgres` one. `payments` is t
 
 ## Run it locally
 
-You need Go (see `go.mod` for the version) and Docker with the compose plugin.
+### Prerequisites
+
+| Tool | Version | Used for |
+| ---- | ------- | -------- |
+| Go | 1.27.4 (see `go.mod`) | Building and running the services |
+| Docker with the Compose plugin | Docker 29.x, Compose v5.x | Running Postgres, Redis, and NATS |
+| golang-migrate CLI (`migrate`) | v4.20.1, built with `-tags postgres` | Applying and rolling back the database migrations in `db/` |
+
+Install `migrate` with Go:
+
+```bash
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1
+```
+
+This puts the binary in `~/go/bin`. Make sure that directory is on your `PATH`, then check it with `migrate -version`.
 
 ```bash
 # Start Postgres, Redis, and NATS in the background
@@ -109,6 +123,32 @@ Stop everything with `docker compose down`. Named volumes, including the Postgre
 The init script in `deploy/postgres` runs only when the Postgres volume is first created. If you add a database to that file, run `docker compose down -v` and then `docker compose up -d` to recreate the volume, which deletes the data. To keep the data, create the database in `psql` with `CREATE DATABASE`.
 
 The credentials in `docker-compose.yml` are for local development only.
+
+### Database migrations
+
+Each database change is a pair of files in `db/<service>/migrations`: an `.up.sql` file that applies the change and a `.down.sql` file that reverses it. `migrate` tracks the applied version in a `schema_migrations` table in each database.
+
+Create a new pair. `-seq` numbers the files in order:
+
+```bash
+migrate create -ext sql -dir db/wallet/migrations -seq <name>
+```
+
+Apply all pending migrations to the `wallet` database, using the local compose credentials:
+
+```bash
+migrate -path db/wallet/migrations \
+  -database "postgres://payments:payments@localhost:5432/wallet?sslmode=disable" up
+```
+
+Roll back the most recent migration with `down 1`, or check the current version with `version`:
+
+```bash
+migrate -path db/wallet/migrations -database "<same URL>" down 1
+migrate -path db/wallet/migrations -database "<same URL>" version
+```
+
+`000001_init_ledger` is still a work in progress, and its down file is empty, so it cannot be rolled back yet. Do not run `up` against a database you care about until the migration is finished.
 
 ## Layout
 
