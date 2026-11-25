@@ -42,21 +42,36 @@ CREATE TABLE entries (
 CREATE INDEX entries_transaction_id_idx ON entries (transaction_id);
 CREATE INDEX entries_account_id_idx ON entries (account_id);
 
--- A transaction must have entries. Its debits and credits must balance in every currency.
+-- A transaction must have entries.
+-- Its debits and credits must balance in every currency.
 -- Checked at COMMIT, once all entries exist.
 CREATE FUNCTION check_transaction_balanced() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
     tx_id uuid;
 BEGIN
+    -- Determine the transaction ID based on the table triggering the function.
     IF TG_TABLE_NAME = 'transactions' THEN
         tx_id := NEW.id;
     ELSE
         tx_id := NEW.transaction_id;
     END IF;
 
+    -- A transaction must have at least one entry.
     IF NOT EXISTS (SELECT 1 FROM entries WHERE transaction_id = tx_id) THEN
         RAISE EXCEPTION 'transaction % has no entries', tx_id
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- The sum of debits and credits must be zero for each currency.
+    IF EXISTS (
+        SELECT 1
+        FROM entries
+        WHERE transaction_id = tx_id
+        GROUP BY currency
+        HAVING sum(CASE direction WHEN 'debit' THEN amount ELSE -amount END) <> 0
+    ) THEN
+        RAISE EXCEPTION 'transaction % is not in balance', tx_id
             USING ERRCODE = 'check_violation';
     END IF;
 
@@ -73,3 +88,34 @@ CREATE CONSTRAINT TRIGGER entries_balanced
     AFTER INSERT ON entries
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW EXECUTE FUNCTION check_transaction_balanced();
+
+-- The ledger is append-only: mistakes are handled with reversal transactions
+CREATE FUNCTION forbid_ledger_changes() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION '% is append-only, post a reversal transaction instead', TG_TABLE_NAME
+        USING ERRCODE = 'restrict_violation';
+END;
+$$;
+
+CREATE TRIGGER transactions_forbid_changes
+    BEFORE UPDATE OR DELETE ON transactions
+    FOR EACH ROW EXECUTE FUNCTION forbid_ledger_changes();
+
+CREATE TRIGGER entries_append_only
+    BEFORE UPDATE OR DELETE ON entries
+    FOR EACH ROW EXECUTE FUNCTION forbid_ledger_changes();
+
+-- Balances are derived from entries, never stored.
+CREATE VIEW account_balances AS
+SELECT
+    a.id AS account_id,
+    a.name,
+    a.currency,
+    coalesce(sum(CASE WHEN e.direction = a.normal_balance
+        THEN e.amount ELSE -e.amount END), 0)::bigint AS balance
+FROM accounts a 
+LEFT JOIN entries e ON e.account_id = a.id 
+GROUP BY a.id;
+
+COMMIT;
