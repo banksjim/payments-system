@@ -4,6 +4,8 @@ A payments backend in Go. The course builds six microservices from an empty fold
 
 This is a personal learning repo. It follows the video as I work through it and has no affiliation with the course author. The author's own code is at [dev-marker/payments](https://github.com/dev-marker/payments).
 
+<!-- Source: repo About text, chapters.md. Open question: the About text names the course "Go payments system development course" and links a youtu.be URL. This intro uses the video title and a watch?v= URL. Confirm which to keep. -->
+
 ## Course progress
 
 **Current position: 1:17:49 of 19:47:09 (about 7%).**
@@ -12,9 +14,11 @@ I've just started Episode 3, "Type-Safe SQL with sqlc + pgx." I finished Episode
 
 For Episode 2, I've committed the ledger schema as a work-in-progress migration, with append-only triggers and the `account_balances` view, plus scratch SQL tests. I haven't committed anything from Episode 3 yet, including the Go ledger code.
 
-<!-- Updated by temp-update-course-progress. Check the status paragraph against git before editing. -->
+<!-- Updated by temp-update-readme. Check the status paragraph against git before editing. -->
 
 ## What the course builds
+
+<!-- Source: CodeWise course description. Only change when the course description changes. -->
 
 - A double-entry ledger in PostgreSQL, with type-safe SQL using sqlc and pgx. Locks and idempotency keys control how money moves.
 - JWT auth, gRPC between services, an API gateway, and events with NATS JetStream and the transactional outbox.
@@ -23,6 +27,8 @@ For Episode 2, I've committed the ledger schema as a work-in-progress migration,
 - Security with mTLS and least-privilege roles, performance tuning, Kubernetes with Helm, and chaos engineering.
 
 ### Episodes
+
+<!-- Source: chapters.md. Regenerate when the course chapter list changes. -->
 
 | # | Episode | Starts at |
 | - | ------- | --------- |
@@ -53,6 +59,8 @@ For Episode 2, I've committed the ledger schema as a work-in-progress migration,
 
 ## What is in the repo now
 
+<!-- Source: git ls-files. Add a row when a tracked file is added. -->
+
 Episode 1 covers the finished system, why Go and microservices, local infrastructure, and graceful shutdown. The repo has code for the last two of those topics: local infrastructure and graceful shutdown. It also has the first ledger migration from Episode 2:
 
 | Path | What it is |
@@ -61,7 +69,12 @@ Episode 1 covers the finished system, why Go and microservices, local infrastruc
 | `docker-compose.yml` | Local infrastructure: Postgres 17, Redis 8, and NATS 2.11 with JetStream enabled. |
 | `deploy/postgres/01-create-databases.sql` | Creates the `wallet`, `auth`, and `transfers` databases the first time Postgres starts. Compose mounts the folder into the container's init directory. |
 | `db/wallet/migrations` | Wallet database migrations. `000001_init_ledger` creates the `accounts`, `transactions`, and `entries` tables, with triggers that require every transaction to have entries. It is a work in progress and not ready to apply with `migrate`. |
-| `docs/commands.md` | Commands I use while working on the project. |
+| `docs/commands.md` | Command reference for Docker, golang-migrate, Postgres, and Redis. |
+| `Makefile` | Shortcuts for the migration commands: `make migrate-up`, `make migrate-down`, `make migrate-version`, and `make migrate-new name=<name>`. |
+| `sql_tests/` | Scratch SQL for the ledger schema. `scratch.sql` sets up accounts and a balance query. `scratch2.sql` writes transactions, including writes the schema should reject. |
+| `.gitignore` | Files Git does not track, including the local VS Code workspace file. |
+
+<!-- Source: docker-compose.yml. Regenerate when services or ports change. -->
 
 Services started by `docker compose`:
 
@@ -71,9 +84,13 @@ Services started by `docker compose`:
 | redis | `redis:8-alpine` | 6379 |
 | nats | `nats:2.11-alpine` | 4222 (client), 8222 (monitoring) |
 
+<!-- Source: docker-compose.yml POSTGRES_DB, deploy/postgres/*.sql. Update when init scripts change. -->
+
 Postgres has four databases besides the built-in `postgres` one. `payments` is the default, created from `POSTGRES_DB`. `wallet`, `auth`, and `transfers` get one database per service.
 
 ## Run it locally
+
+<!-- Source: go.mod, docker version, docker compose version, go version -m migrate. -->
 
 ### Prerequisites
 
@@ -124,9 +141,13 @@ Stop everything with `docker compose down`. Named volumes, including the Postgre
 
 The init script in `deploy/postgres` runs only when the Postgres volume is first created. If you add a database to that file, run `docker compose down -v` and then `docker compose up -d` to recreate the volume, which deletes the data. To keep the data, create the database in `psql` with `CREATE DATABASE`.
 
+<!-- Source: docker-compose.yml credentials. -->
+
 The credentials in `docker-compose.yml` are for local development only.
 
 ### Database migrations
+
+<!-- Source: Makefile migrate targets, db/*/migrations state. Update when targets or migration state change. -->
 
 Each database change is a pair of files in `db/<service>/migrations`: an `.up.sql` file that applies the change and a `.down.sql` file that reverses it. `migrate` tracks the applied version in a `schema_migrations` table in each database.
 
@@ -150,12 +171,18 @@ migrate -path db/wallet/migrations -database "<same URL>" down 1
 migrate -path db/wallet/migrations -database "<same URL>" version
 ```
 
-`000001_init_ledger` is still a work in progress, and its down file is empty, so it cannot be rolled back yet. Do not run `up` against a database you care about until the migration is finished.
+The `Makefile` wraps these commands. `make migrate-up` applies pending migrations, `make migrate-down` rolls back one step, `make migrate-version` shows the current version, and `make migrate-new name=<name>` creates a new pair. Set `SERVICE` to target another database, for example `make migrate-up SERVICE=auth`.
+
+`000001_init_ledger` is still a work in progress. Its down file is written but has not been tested, so don't rely on rolling it back yet. Don't run `up` against a database you care about until the migration is finished.
 
 ## Layout
 
+<!-- Source: git ls-files. Regenerate when files change. -->
+
 ```text
 .
+├── .gitignore
+├── Makefile               migration shortcuts
 ├── cmd/
 │   └── wallet/            wallet service entry point
 ├── db/
@@ -165,6 +192,9 @@ migrate -path db/wallet/migrations -database "<same URL>" version
 │   └── postgres/          init scripts, run on first Postgres start
 ├── docs/
 │   └── commands.md        command reference
+├── sql_tests/
+│   ├── scratch.sql        ledger setup and balance query
+│   └── scratch2.sql       ledger writes, including rejected ones
 ├── docker-compose.yml     local Postgres, Redis, NATS
 ├── go.mod
 └── README.md
