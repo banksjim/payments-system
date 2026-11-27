@@ -8,9 +8,9 @@ This is a personal learning repo. It follows the video as I work through it and 
 
 **Current position: 1:17:49 of 19:47:09 (about 7%).**
 
-The course has just started Episode 3, "Type-Safe SQL with sqlc + pgx," which begins at 1:17:49. Episode 2, "Designing a Double-Entry Ledger," ended there. Its last section, "Trying to break it," ran from 1:08:34 to 1:17:49.
+I've just started Episode 3, "Type-Safe SQL with sqlc + pgx." I finished Episode 2, "Designing a Double-Entry Ledger," and its last section, "Trying to break it," ran from 1:08:34 to 1:17:49. The next section is "Why sqlc," at 1:19:18.
 
-The committed code covers Episode 1 and Episode 2. For Episode 2, it has the ledger schema as a work-in-progress migration, including append-only triggers and the `account_balances` view, plus scratch SQL tests. Nothing from Episode 3 is committed yet, and the Go ledger code is not committed.
+For Episode 2, I've committed the ledger schema as a work-in-progress migration, with append-only triggers and the `account_balances` view, plus scratch SQL tests. I haven't committed anything from Episode 3 yet, including the Go ledger code.
 
 <!-- Updated by temp-update-course-progress. Check the status paragraph against git before editing. -->
 
