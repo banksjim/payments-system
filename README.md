@@ -8,7 +8,7 @@ This is a personal learning repo. It follows the video as I work through it and 
 
 **Current position: 1:17:48 of 19:47:09 (about 7%).**
 
-That is the end of "Trying to break it" in Episode 2, "Designing a Double-Entry Ledger." That section runs from 1:08:34 to 1:17:49, and Episode 3, "Type-Safe SQL with sqlc + pgx," begins at 1:17:49. Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
+That is the end of "Trying to break it" in Episode 2, "Designing a Double-Entry Ledger." The section runs from 1:08:34 to 1:17:49. Episode 3, "Type-Safe SQL with sqlc + pgx," begins at 1:17:49. Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
 
 The committed code covers Episode 1 and the start of Episode 2. The ledger migration is a work in progress. I update this line as I move forward, so check it before assuming a feature should exist.
 
@@ -51,7 +51,7 @@ The committed code covers Episode 1 and the start of Episode 2. The ledger migra
 
 ## What is in the repo now
 
-Episode 1 covers the finished system, why Go and microservices, local infrastructure, and graceful shutdown. The repo contains the last two, plus the first ledger migration from Episode 2:
+Episode 1 covers the finished system, why Go and microservices, local infrastructure, and graceful shutdown. The repo has code for the last two of those topics: local infrastructure and graceful shutdown. It also has the first ledger migration from Episode 2:
 
 | Path | What it is |
 | ---- | ---------- |
