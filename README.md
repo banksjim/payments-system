@@ -6,9 +6,9 @@ This is a personal learning repo. It follows the video as I work through it and 
 
 ## Course progress
 
-**Current position: 1:13:17 of 19:47:09 (about 6%).**
+**Current position: 1:17:48 of 19:47:09 (about 7%).**
 
-That is inside "Trying to break it" in Episode 2, "Designing a Double-Entry Ledger." That section runs from 1:08:34 to 1:17:49, where Episode 3 begins. Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
+That is the end of "Trying to break it" in Episode 2, "Designing a Double-Entry Ledger." That section runs from 1:08:34 to 1:17:49, and Episode 3, "Type-Safe SQL with sqlc + pgx," begins at 1:17:49. Episode 2 began at 36:29, and its "Accounts" section ran from 52:53 to 1:01:27.
 
 The committed code covers Episode 1 and the start of Episode 2. The ledger migration is a work in progress. I update this line as I move forward, so check it before assuming a feature should exist.
 
